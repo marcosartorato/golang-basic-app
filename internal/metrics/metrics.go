@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/marcosartorato/myapp/internal/config"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -35,15 +36,16 @@ func Init() {
 }
 
 // Start metric server
-func Start() {
-	// --- Metrics server (port 9090) ---
+func Start(cfg *config.ServerConfig) {
 	metricsMux := http.NewServeMux()
+
 	metricsMux.Handle("/metrics", promhttp.Handler())
 
-	// Run metrics server in goroutine
+	// Run metrics server in a goroutine
 	go func() {
-		fmt.Println("Metrics server listening on :9090")
-		if err := http.ListenAndServe(":9090", metricsMux); err != nil {
+		addr := cfg.Addr()
+		fmt.Println("Metrics server listening on  " + addr)
+		if err := http.ListenAndServe(addr, metricsMux); err != nil {
 			log.Fatalf("metrics server failed: %v", err)
 		}
 	}()

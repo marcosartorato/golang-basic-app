@@ -8,17 +8,21 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/marcosartorato/myapp/internal/config"
 	"github.com/marcosartorato/myapp/internal/hello"
 	"github.com/marcosartorato/myapp/internal/metrics"
 )
 
 func main() {
+	// Get configuration
+	cfg := config.Parse()
+
 	// Initialize metrics
 	metrics.Init()
 
 	// Start servers
-	hello.Start()
-	metrics.Start()
+	hello.Start(&cfg.HTTP)
+	metrics.Start(&cfg.Metrics)
 
 	// Channel to listen for termination signals
 	stop := make(chan os.Signal, 1)

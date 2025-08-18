@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/marcosartorato/myapp/internal/config"
 	"github.com/marcosartorato/myapp/internal/metrics"
 )
 
@@ -18,7 +19,7 @@ func HelloHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Start run the hello-world server on dedicated goroutine.
-func Start() {
+func Start(cfg *config.ServerConfig) {
 	appMux := http.NewServeMux()
 
 	appMux.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
@@ -31,10 +32,11 @@ func Start() {
 		metrics.RequestDuration.WithLabelValues("/hello").Observe(duration)
 	})
 
-	// Run main app server on port 8080
+	// Run main app server in a goroutine
 	go func() {
-		fmt.Println("App server listening on :8080")
-		if err := http.ListenAndServe(":8080", appMux); err != nil {
+		addr := cfg.Addr()
+		fmt.Println("App server listening on " + addr)
+		if err := http.ListenAndServe(addr, appMux); err != nil {
 			log.Fatalf("app server failed: %v", err)
 		}
 	}()
