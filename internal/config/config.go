@@ -6,10 +6,10 @@ import (
 )
 
 const (
-	envHTTPPort    = "MYAPP_HTTP_PORT"
-	envHTTPHost    = "MYAPP_HTTP_HOST"
-	envMetricsPort = "MYAPP_METRICS_PORT"
-	envMetricsHost = "MYAPP_METRICS_HOST"
+	envHTTPPort    = "HTTP_PORT"
+	envHTTPHost    = "HTTP_HOST"
+	envMetricsPort = "METRICS_PORT"
+	envMetricsHost = "METRICS_HOST"
 )
 
 // ServerConfig holds host and port information for a server.

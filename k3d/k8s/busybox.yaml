@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: busybox-curl
+  namespace: myapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: busybox-curl
+  template:
+    metadata:
+      labels:
+        app: busybox-curl
+    spec:
+      containers:
+        - name: busybox
+          image: radial/busyboxplus:curl
+          command: ["tail", "-f", "/dev/null"]
+          resources:
+            requests:
+              cpu: "10m"
+              memory: "16Mi"
+            limits:
+              cpu: "200m"
+              memory: 500M

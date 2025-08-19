@@ -1,0 +1,34 @@
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+metadata:
+  name: myapp
+servers: 1
+agents: 1
+
+registries:
+  create:
+    name: k3d-tilt-registry
+    host: "0.0.0.0"
+    hostPort: "5000"
+  config: |-
+    mirrors:
+      "k3d-tilt-registry:5000":
+        endpoint:
+          - http://k3d-tilt-registry:5000
+    configs:
+      "k3d-tilt-registry:5000":
+        tls:
+          insecure_skip_verify: true
+
+volumes:
+  # --- server node ---
+  - volume: /tmp/k3d/myapp/server/kubelet:/var/lib/kubelet
+    nodeFilters: ["server:0"]
+  - volume: /tmp/k3d/myapp/server/containerd:/var/lib/rancher/k3s/agent/containerd
+    nodeFilters: ["server:0"]
+
+  # --- agent node ---
+  - volume: /tmp/k3d/myapp/agent/kubelet:/var/lib/kubelet
+    nodeFilters: ["agent:0"]
+  - volume: /tmp/k3d/myapp/agent/containerd:/var/lib/rancher/k3s/agent/containerd
+    nodeFilters: ["agent:0"]
