@@ -1,29 +1,64 @@
 # golang-basic-app
 
+Minimal Go template for future reference/showcase. Includes local pipeline commands (lint/test/build), Docker image, and a quick k8s (k3s via k3d) deploy.
+
+## Overview
+
 Basic GoLang application template:
 
 1. "Hello, World!" web server on 8080 port.
 2. Web server exposing scraping point on 9090 port.
 3. Graceful termination on SIGTERM signal.
 
-## Instructions
-
-Run locally:
+## Local Pipeline (lint/test/build/run)
 
 ```
-go run ./cmd/myapp
+# Run linter
+golangci-lint run
+
+# Run test
+go test -v -coverprofile=out.cover ./...
+
+# Build and run binary
+go build -o bin/myapp cmd/myapp/main.go
+./bin/myapp
 ```
 
-Build Docker image:
+## Make Targets
+
+If you prefer `Make`, add a `Makefile` with these:
+
+```make
+.PHONY: lint test build run clean
+lint:  ; golangci-lint run
+test:  ; go test -v -cover ./...
+build: ; mkdir -p bin && go build -o bin/myapp ./cmd/myapp/main.go
+run:   ; go run ./cmd/myapp
+clean: ; rm -rf bin
+```
+
+## Docker
 
 ```
-docker build -t myapp .
-```
+# Run linter
+docker run --rm \
+    -v "$(pwd)":/myapp \
+    -w /myapp \
+    golangci/golangci-lint:v2.4.0-alpine \
+    golangci-lint run ./...
 
-Run with Docker:
+# Run test
+docker run --rm \
+    -v "$(pwd)":/myapp \
+    -w /myapp \
+    golang:1.25.0-alpine \
+    go test -v -coverprofile=out.cover ./...
 
-```
-docker run -p 8080:8080 -p 9090:9090 myapp
+# Build local image
+docker build -t myapp:dev .
+
+# Run container
+docker run -rm -p 8080:8080 -p 9090:9090 myapp:dev
 ```
 
 ## Local k8s Cluster
@@ -54,3 +89,7 @@ k3d cluster create --config ./k3d/cluster.yaml
 # Run Tilt
 tilt up
 ```
+
+## License
+
+See [LICENSE](./LICENSE).
