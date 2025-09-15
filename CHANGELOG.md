@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/marcosartorato/golang-basic-app/compare/v1.0.0...v1.0.1) (2025-09-15)
+
+
+### Bug Fixes
+
+* check the return value from the JSON encoding func ([891a592](https://github.com/marcosartorato/golang-basic-app/commit/891a592fe2cccadc7279a454cf9a2bb456baacd1))
+
 # 1.0.0 (2025-08-24)
 
 
