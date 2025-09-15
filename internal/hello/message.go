@@ -34,10 +34,16 @@ func MessageHandler(w http.ResponseWriter, r *http.Request) {
 	switch req.Type {
 	case "repeat":
 		resp := RepeatResponse{Type: "repeat", Msg: req.Msg}
-		json.NewEncoder(w).Encode(resp)
+		if err := json.NewEncoder(w).Encode(resp); err != nil {
+			http.Error(w, "failed to encode response", http.StatusInternalServerError)
+			return
+		}
 	case "time":
 		resp := TimeResponse{Type: "time", Time: time.Now().UTC().Format(time.RFC3339)}
-		json.NewEncoder(w).Encode(resp)
+		if err := json.NewEncoder(w).Encode(resp); err != nil {
+			http.Error(w, "failed to encode response", http.StatusInternalServerError)
+			return
+		}
 	default:
 		http.Error(w, "unknown type", http.StatusBadRequest)
 	}
