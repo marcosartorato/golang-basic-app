@@ -19,10 +19,10 @@ func HelloHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Start run the hello-world server on dedicated goroutine.
-func Start(cfg *config.ServerConfig) {
-	appMux := http.NewServeMux()
+func CreateServer(cfg *config.ServerConfig) *http.Server {
+	mux := http.NewServeMux()
 
-	appMux.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
 		metrics.RequestsTotal.WithLabelValues("/hello").Inc()
@@ -31,13 +31,19 @@ func Start(cfg *config.ServerConfig) {
 		duration := time.Since(start).Seconds()
 		metrics.RequestDuration.WithLabelValues("/hello").Observe(duration)
 	})
+	mux.HandleFunc("/api/message", func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
 
-	// Run main app server in a goroutine
-	go func() {
-		addr := cfg.Addr()
-		fmt.Println("App server listening on " + addr)
-		if err := http.ListenAndServe(addr, appMux); err != nil {
-			log.Fatalf("app server failed: %v", err)
-		}
-	}()
+		metrics.RequestsTotal.WithLabelValues("/api/message").Inc()
+		MessageHandler(w, r)
+
+		duration := time.Since(start).Seconds()
+		metrics.RequestDuration.WithLabelValues("/api/message").Observe(duration)
+	})
+
+	server := &http.Server{
+		Addr:    cfg.Addr(),
+		Handler: mux,
+	}
+	return server
 }

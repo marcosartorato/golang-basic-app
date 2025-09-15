@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -21,8 +23,25 @@ func main() {
 	metrics.Init()
 
 	// Start servers
-	hello.Start(&cfg.HTTP)
-	metrics.Start(&cfg.Metrics)
+	helloSrv := hello.CreateServer(&cfg.HTTP)
+	metricSrv := metrics.CreateServer(&cfg.Metrics)
+
+	// Run main app server in a goroutine
+	go func() {
+		addr := helloSrv.Addr
+		fmt.Println("App server listening on " + addr)
+		if err := http.ListenAndServe(addr, helloSrv.Handler); err != nil {
+			log.Fatalf("app server failed: %v", err)
+		}
+	}()
+	// Run metrics server in a goroutine
+	go func() {
+		addr := metricSrv.Addr
+		fmt.Println("Metrics server listening on  " + addr)
+		if err := http.ListenAndServe(addr, metricSrv.Handler); err != nil {
+			log.Fatalf("metrics server failed: %v", err)
+		}
+	}()
 
 	// Channel to listen for termination signals
 	stop := make(chan os.Signal, 1)
@@ -36,10 +55,13 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// At this point, since Start() just spins goroutines,
-	// we don’t have direct server references to call Shutdown().
-	// You might later refactor Start() to return *http.Server
-	// so that you can call Shutdown(ctx) here.
+	// Call Shutdown on the server
+	if err := helloSrv.Shutdown(ctx); err != nil {
+		log.Fatalf("server forced to shutdown: %v", err)
+	}
+	if err := metricSrv.Shutdown(ctx); err != nil {
+		fmt.Printf("metrics server shutdown error: %v\n", err)
+	}
 
 	<-ctx.Done()
 	fmt.Println("Servers stopped cleanly")

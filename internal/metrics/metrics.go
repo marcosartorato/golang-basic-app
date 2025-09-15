@@ -1,8 +1,6 @@
 package metrics
 
 import (
-	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/marcosartorato/myapp/internal/config"
@@ -36,17 +34,15 @@ func Init() {
 }
 
 // Start metric server
-func Start(cfg *config.ServerConfig) {
-	metricsMux := http.NewServeMux()
+func CreateServer(cfg *config.ServerConfig) *http.Server {
+	mux := http.NewServeMux()
 
-	metricsMux.Handle("/metrics", promhttp.Handler())
+	mux.Handle("/metrics", promhttp.Handler())
 
-	// Run metrics server in a goroutine
-	go func() {
-		addr := cfg.Addr()
-		fmt.Println("Metrics server listening on  " + addr)
-		if err := http.ListenAndServe(addr, metricsMux); err != nil {
-			log.Fatalf("metrics server failed: %v", err)
-		}
-	}()
+	server := &http.Server{
+		Addr:    cfg.Addr(),
+		Handler: mux,
+	}
+	return server
+
 }
