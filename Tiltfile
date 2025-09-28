@@ -1,3 +1,17 @@
+# --- Prometheus --------------------------------------------------------------
+# Ensure the repo exists locally
+local('helm repo add prometheus-community https://prometheus-community.github.io/helm-charts || true')
+local('helm repo update')
+
+# Render the chart to YAML that Tilt will apply
+local('helm template prometheus prometheus-community/prometheus --namespace monitoring -f ./k3d/prometheus/prom-values.yaml --create-namespace > k3d/prometheus/manifests/prometheus.yaml')
+
+# Apply with Tilt
+k8s_yaml([
+  'k3d/prometheus/manifests/ns.yaml',
+  'k3d/prometheus/manifests/prometheus.yaml',
+])
+
 # --- Cluster & namespace -----------------------------------------------------
 # Tilt will apply resources into the "myapp" namespace declared in your YAML.
 # It’s fine if the namespace doesn’t exist yet; Tilt applies it first.
