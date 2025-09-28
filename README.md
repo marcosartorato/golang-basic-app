@@ -127,6 +127,10 @@ k3d cluster delete ctrl
 
 Take a look [here](./k3d/README.md).
 
+## Metrics
+
+You can read more about the provided metrics [here](./internal/metrics/README.md).
+
 ## License
 
 See [LICENSE](./LICENSE).
