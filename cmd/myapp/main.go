@@ -19,9 +19,6 @@ func main() {
 	// Get configuration
 	cfg := config.Parse()
 
-	// Initialize metrics
-	metrics.Init()
-
 	// Start servers
 	helloSrv := hello.CreateServer(&cfg.HTTP)
 	metricSrv := metrics.CreateServer(&cfg.Metrics)

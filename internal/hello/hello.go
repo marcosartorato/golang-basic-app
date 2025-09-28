@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/marcosartorato/myapp/internal/config"
 	"github.com/marcosartorato/myapp/internal/metrics"
@@ -22,24 +21,8 @@ func HelloHandler(w http.ResponseWriter, r *http.Request) {
 func CreateServer(cfg *config.ServerConfig) *http.Server {
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
-
-		metrics.RequestsTotal.WithLabelValues("/hello").Inc()
-		HelloHandler(w, r)
-
-		duration := time.Since(start).Seconds()
-		metrics.RequestDuration.WithLabelValues("/hello").Observe(duration)
-	})
-	mux.HandleFunc("/api/message", func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
-
-		metrics.RequestsTotal.WithLabelValues("/api/message").Inc()
-		MessageHandler(w, r)
-
-		duration := time.Since(start).Seconds()
-		metrics.RequestDuration.WithLabelValues("/api/message").Observe(duration)
-	})
+	mux.Handle("/hello", metrics.Instrument(http.HandlerFunc(HelloHandler)))
+	mux.Handle("/api/message", metrics.Instrument(http.HandlerFunc(MessageHandler)))
 
 	server := &http.Server{
 		Addr:    cfg.Addr(),
