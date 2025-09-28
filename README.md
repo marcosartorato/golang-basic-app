@@ -136,7 +136,9 @@ Take a look [here](./k3d/README.md).
 
 ## Metrics
 
-You can read more about the provided metrics [here](./internal/metrics/README.md).
+More about the provided metrics [here](./internal/metrics/README.md).
+
+More about how to access the metrics in the local environment [here](./k3d/README.md)
 
 ## License
 

@@ -29,3 +29,16 @@ To clean the local environment:
 - Press `Ctrl`+`C` to stop tilt.
 - Run `k3d cluster stop ctrl` to stop the cluster.
 - Run `k3d cluster delete ctrl` to delete the cluster.
+
+## Metrics
+
+The Grafana UI is exposed and can be accessed [here](http://localhost:3000/).
+
+To get username and password, run:
+
+```
+k get secret/grafana-ui -n monitoring -o jsonpath='{.data.admin-user}' | base64 -d
+k get secret/grafana-ui -n monitoring -o jsonpath='{.data.admin-password}' | base64 -d
+```
+
+Remember to setup the data source [here](http://localhost:3000/connections/datasources) using `http://prometheus-server:80`.
