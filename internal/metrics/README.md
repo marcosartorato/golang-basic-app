@@ -9,7 +9,7 @@ The instrumentation follows the **RED pattern** (Rate, Errors, Duration), plus r
 
 ### Requests
 
-- **`myapp_http_requests_total{method,route,status}`** 
+- **`http_requests_total{method,route,status}`** 
 
   Counter. Total number of HTTP requests handled, labeled by:
 
@@ -21,37 +21,37 @@ The instrumentation follows the **RED pattern** (Rate, Errors, Duration), plus r
 
 ### Request duration
 
-- **`myapp_http_request_duration_seconds_bucket{method,route,status,le}`**  
+- **`http_request_duration_seconds_bucket{method,route,status,le}`**  
   Histogram. Distribution of request latencies in seconds.  
-- **`myapp_http_request_duration_seconds_count/sum`**  
+- **`http_request_duration_seconds_count/sum`**  
   Aggregated counts and totals.
 
   **Usage**: percentile latency (p50, p95, p99) per route, alerting on slow endpoints.
 
 ### Inflight requests
 
-- **`myapp_http_inflight_requests{route}`**  
+- **`http_inflight_requests{route}`**  
   Gauge. Number of requests currently being processed.
 
   **Usage**: detect backlog buildup, long-lived requests, saturation.
 
 ### Request size
 
-- **`myapp_http_request_size_bytes_bucket{method,route}`**  
+- **`http_request_size_bytes_bucket{method,route}`**  
   Histogram. Approximate request body sizes (from `Content-Length`).  
 
   **Usage**: spot unusually large uploads or payload trends.
 
 ### Response size
 
-- **`myapp_http_response_size_bytes_bucket{method,route,status}`**  
+- **`http_response_size_bytes_bucket{method,route,status}`**  
   Histogram. Distribution of response payload sizes.  
 
   **Usage**: track API response growth, detect unexpectedly large responses.
 
 ### Panics
 
-- **`myapp_http_panics_total{route}`**  
+- **`http_panics_total{route}`**  
   Counter. Number of recovered panics while serving requests.
 
   **Usage**: alert if application code crashes inside handlers.
@@ -89,9 +89,9 @@ Examples:
 
 - **Error rate (5xx %)**  
   ```promql
-  sum(rate(myapp_http_requests_total{status=~"5.."}[5m]))
+  sum(rate(http_requests_total{status=~"5.."}[5m]))
     /
-  sum(rate(myapp_http_requests_total[5m]))
+  sum(rate(http_requests_total[5m]))
   ```
 
 ---
