@@ -6,7 +6,7 @@ Minimal Go template for future reference/showcase. Includes local pipeline comma
 
 Basic GoLang application template:
 
-1. "Hello, World!" web server on 8080 port.
+1. "Hello, World!" web server on port 8080.
 2. Web server exposing scraping point on 9090 port.
 3. Graceful termination on SIGTERM signal.
 
@@ -58,7 +58,7 @@ docker run --rm \
 docker build -t myapp:dev .
 
 # Run container
-docker run -rm -p 8080:8080 -p 9090:9090 myapp:dev
+docker run --rm -p 8080:8080 -p 9090:9090 myapp:dev
 ```
 
 ## Local k8s Cluster
@@ -73,22 +73,59 @@ For easier local development and deployment, use [tilt](https://docs.tilt.dev/).
 
 To install Tilt, follow the official [installation guide](https://docs.tilt.dev/install.html).
 
+To install kubectl, follow the official [installation guide](https://kubernetes.io/docs/tasks/tools/).
+
 ### Setup
 
 ```
-# Clean local folders from old artifacts
-sudo rm -rf /tmp/k3d
-
-# Create new folders
-mkdir -p /tmp/k3d/myapp/server/kubelet /tmp/k3d/myapp/server/containerd
-mkdir -p /tmp/k3d/myapp/agent/kubelet /tmp/k3d/myapp/agent/containerd
-
-# Create k3d cluster
+# Create k3d cluster.
 k3d cluster create --config ./k3d/cluster.yaml
 
-# Run Tilt
+# Start Tilt to build, deploy, and watch the app.
+# Tilt will auto-redeploy on code changes.
 tilt up
 ```
+
+### Testing Command
+
+```
+# Bind the application's service port to local port.
+kubectl port-forward svc/myapp -n myapp 8888:80
+
+# Test the HTTP server.
+curl localhost:8888/hello
+
+# Bind the application's metric service port to local port.
+kubectl port-forward svc/myapp-metrics -n myapp 9090:9090
+
+# Test the metrics scraping point.
+curl localhost:9090/metrics
+```
+
+### Clean Up
+
+1. Stop Tilt.
+
+Press `Ctrl`+`C` on the tilt console tab to stop it.
+
+2. Stop cluster.
+
+```
+# Stop the cluster.
+# The cluster name is ctrl due to ./k3d/cluster.yaml.
+k3d cluster stop ctrl
+```
+
+3. Delete the cluster.
+
+```
+# Delete the cluster.
+k3d cluster delete ctrl
+```
+
+### Additional Information
+
+Take a look [here](./k3d/README.md).
 
 ## License
 
