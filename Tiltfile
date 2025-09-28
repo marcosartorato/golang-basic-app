@@ -1,16 +1,14 @@
+load('ext://helm_resource', 'helm_resource', 'helm_repo')
+k8s_yaml(['k3d/prometheus/manifests/ns.yaml'])
+
 # --- Prometheus --------------------------------------------------------------
-# Ensure the repo exists locally
-local('helm repo add prometheus-community https://prometheus-community.github.io/helm-charts || true')
-local('helm repo update')
+helm_repo('prometheus-community', 'https://prometheus-community.github.io/helm-charts')
+helm_resource('prometheus', 'prometheus-community/prometheus', namespace='monitoring')
 
-# Render the chart to YAML that Tilt will apply
-local('helm template prometheus prometheus-community/prometheus --namespace monitoring -f ./k3d/prometheus/prom-values.yaml --create-namespace > k3d/prometheus/manifests/prometheus.yaml')
-
-# Apply with Tilt
-k8s_yaml([
-  'k3d/prometheus/manifests/ns.yaml',
-  'k3d/prometheus/manifests/prometheus.yaml',
-])
+# --- Grafana -----------------------------------------------------------------
+helm_repo('grafana', 'https://grafana.github.io/helm-charts')
+helm_resource('grafana-ui', 'grafana/grafana', namespace='monitoring')
+k8s_resource(workload='grafana-ui', port_forwards=['3000:3000'])
 
 # --- Cluster & namespace -----------------------------------------------------
 # Tilt will apply resources into the "myapp" namespace declared in your YAML.
