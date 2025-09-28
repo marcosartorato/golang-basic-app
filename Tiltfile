@@ -10,7 +10,7 @@ k8s_yaml([
 ])
 
 # --- Image Build -------------------------------------------------------------
-# We keep the image name exactly as in your Deployment: localhost:5000/myapp:latest
+# We keep the image name exactly as in your Deployment: k3d-tilt-registry:5000/myapp:latest
 # This plays nicely with the k3d registry defined in k3d/cluster.yaml.
 
 # Keep the image ref simple; Tilt will rewrite to the default registry above
