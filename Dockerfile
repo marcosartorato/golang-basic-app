@@ -19,8 +19,11 @@ FROM alpine:3.19
 WORKDIR /root/
 COPY --from=builder /app/myapp .
 
-# Expose HTTP port
+# The application is going to listen two HTTP ports:
+# - 8080 for the main application
+# - 9090 for the metrics endpoint
 EXPOSE 8080
+EXPOSE 9090
 
 # Run app
 CMD ["./myapp"]
