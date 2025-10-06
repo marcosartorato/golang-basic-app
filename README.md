@@ -78,13 +78,6 @@ To install kubectl, follow the official [installation guide](https://kubernetes.
 ### Setup
 
 ```
-# Clean local folders from old artifacts
-sudo rm -rf /tmp/k3d
-
-# Create new folders
-mkdir -p /tmp/k3d/myapp/server/kubelet /tmp/k3d/myapp/server/containerd
-mkdir -p /tmp/k3d/myapp/agent/kubelet /tmp/k3d/myapp/agent/containerd
-
 # Create k3d cluster.
 k3d cluster create --config ./k3d/cluster.yaml
 
