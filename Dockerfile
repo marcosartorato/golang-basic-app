@@ -11,7 +11,8 @@ RUN go mod download
 COPY . .
 
 # Build the Go app
-RUN go build -o myapp ./cmd/myapp
+# -ldflags="-s -w" strips debug information to reduce binary size
+RUN go build -ldflags="-s -w" -o myapp ./cmd/myapp
 
 # Final image
 FROM alpine:3.19
