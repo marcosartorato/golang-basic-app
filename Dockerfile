@@ -17,8 +17,12 @@ RUN go build -ldflags="-s -w" -o myapp ./cmd/myapp
 # Final image
 FROM alpine:3.19
 
+# Create a non-root user to run the application
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+USER appuser
+
 WORKDIR /root/
-COPY --from=builder /app/myapp .
+COPY --chown=appuser:appgroup --from=builder /app/myapp .
 
 # The application is going to listen two HTTP ports:
 # - 8080 for the main application
