@@ -1,5 +1,5 @@
 load('ext://helm_resource', 'helm_resource', 'helm_repo')
-k8s_yaml(['k3d/prometheus/manifests/ns.yaml'])
+k8s_yaml(['k3d/prometheus/ns.yaml'])
 
 # --- Prometheus --------------------------------------------------------------
 helm_repo('prometheus-community', 'https://prometheus-community.github.io/helm-charts')
