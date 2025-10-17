@@ -1,0 +1,26 @@
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+    - name: Loki
+      type: loki
+      url: http://loki:3100
+      typeLogoUrl: "public/plugins/loki/img/loki_icon.svg"
+      access: "proxy"
+      basicAuth: false
+      isDefault: true
+      jsonData:
+        pdcInjected: false
+      readOnly: false
+    - name: "prometheus"
+      type: "prometheus"
+      typeName: "Prometheus"
+      typeLogoUrl: "public/plugins/prometheus/img/prometheus_logo.svg"
+      access: "proxy"
+      url: "http://prometheus-server:80"
+      basicAuth: false
+      isDefault: false
+      jsonData:
+        pdcInjected: false
+      readOnly: false
+    
