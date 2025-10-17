@@ -1,19 +1,28 @@
 load('ext://helm_resource', 'helm_resource', 'helm_repo')
-k8s_yaml(['k3d/prometheus/ns.yaml'])
 
 # --- Prometheus --------------------------------------------------------------
 helm_repo('prometheus-community', 'https://prometheus-community.github.io/helm-charts')
 helm_resource('prometheus', 'prometheus-community/prometheus', namespace='monitoring')
 
 # --- Grafana -----------------------------------------------------------------
-helm_repo('grafana', 'https://grafana.github.io/helm-charts')
-helm_resource('grafana-ui', 'grafana/grafana', namespace='monitoring')
-k8s_resource(workload='grafana-ui', port_forwards=['3000:3000'])
+helm_repo('grafana-community', 'https://grafana.github.io/helm-charts')
+helm_resource(
+    'grafana', 'grafana-community/grafana', namespace='monitoring',
+    flags=['--values=./k3d/monitoring/grafana/values.yaml'],)
+k8s_resource(workload='grafana', port_forwards=['3000:3000'])
 
-# --- Cluster & namespace -----------------------------------------------------
+# --- Loki ---------------------------------------------------------------------
+helm_resource(
+    'loki', 'grafana-community/loki', namespace='monitoring',
+    flags=['--values=./k3d/monitoring/loki/values.yaml'],
+)
+k8s_resource(workload='loki', port_forwards=['3100:3100'])
+
+# --- Cluster & namespace ------------------------------------------------------
 # Tilt will apply resources into the "myapp" namespace declared in your YAML.
 # It’s fine if the namespace doesn’t exist yet; Tilt applies it first.
 k8s_yaml([
+  'k3d/monitoring/ns.yaml',
   'k3d/k8s/ns.yaml',
   'k3d/k8s/depl.yaml',
   'k3d/k8s/svc.yaml',
