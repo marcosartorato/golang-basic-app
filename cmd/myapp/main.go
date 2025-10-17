@@ -4,14 +4,13 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
 	"github.com/marcosartorato/myapp/internal/config"
-	"github.com/marcosartorato/myapp/internal/hello"
+	httpSrv "github.com/marcosartorato/myapp/internal/http"
 	"github.com/marcosartorato/myapp/internal/metrics"
 )
 
@@ -20,25 +19,8 @@ func main() {
 	cfg := config.Parse()
 
 	// Start servers
-	helloSrv := hello.CreateServer(&cfg.HTTP)
-	metricSrv := metrics.CreateServer(&cfg.Metrics)
-
-	// Run main app server in a goroutine
-	go func() {
-		addr := helloSrv.Addr
-		fmt.Println("App server listening on " + addr)
-		if err := http.ListenAndServe(addr, helloSrv.Handler); err != nil {
-			log.Fatalf("app server failed: %v", err)
-		}
-	}()
-	// Run metrics server in a goroutine
-	go func() {
-		addr := metricSrv.Addr
-		fmt.Println("Metrics server listening on  " + addr)
-		if err := http.ListenAndServe(addr, metricSrv.Handler); err != nil {
-			log.Fatalf("metrics server failed: %v", err)
-		}
-	}()
+	srvShutdown := httpSrv.RunServerWithShutdown(&cfg.HTTP)
+	metricShutdown := metrics.RunServerWithShutdown(&cfg.Metrics)
 
 	// Channel to listen for termination signals
 	stop := make(chan os.Signal, 1)
@@ -53,10 +35,10 @@ func main() {
 	defer cancel()
 
 	// Call Shutdown on the server
-	if err := helloSrv.Shutdown(ctx); err != nil {
+	if err := srvShutdown(ctx); err != nil {
 		log.Fatalf("server forced to shutdown: %v", err)
 	}
-	if err := metricSrv.Shutdown(ctx); err != nil {
+	if err := metricShutdown(ctx); err != nil {
 		fmt.Printf("metrics server shutdown error: %v\n", err)
 	}
 

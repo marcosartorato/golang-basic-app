@@ -11,6 +11,14 @@ helm_resource(
     flags=['--values=./k3d/monitoring/grafana/values.yaml'],)
 k8s_resource(workload='grafana', port_forwards=['3000:3000'])
 
+# --- Promtail -----------------------------------------------------------------
+helm_resource(
+    'promtail', 'grafana-community/promtail', namespace='monitoring',
+    flags=['--values=./k3d/monitoring/promtail/values.yaml'],
+)
+k8s_resource(workload='promtail')
+
+
 # --- Loki ---------------------------------------------------------------------
 helm_resource(
     'loki', 'grafana-community/loki', namespace='monitoring',
