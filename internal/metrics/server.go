@@ -1,6 +1,9 @@
 package metrics
 
 import (
+	"context"
+	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/marcosartorato/myapp/internal/config"
@@ -25,4 +28,20 @@ func CreateServer(cfg *config.ServerConfig) *http.Server {
 		Handler: mux,
 	}
 	return server
+}
+
+// Start run the HTTP server on dedicated goroutine and return the shutdown function.
+func RunServerWithShutdown(cfg *config.ServerConfig) func(context.Context) error {
+	srv := CreateServer(cfg)
+
+	// Run metrics server in a goroutine
+	go func() {
+		addr := srv.Addr
+		fmt.Println("Metrics server listening on  " + addr)
+		if err := http.ListenAndServe(addr, srv.Handler); err != nil {
+			log.Fatalf("metrics server failed: %v", err)
+		}
+	}()
+
+	return srv.Shutdown
 }
