@@ -2,12 +2,11 @@ package metrics
 
 import (
 	"context"
-	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/marcosartorato/myapp/internal/config"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"go.uber.org/zap"
 )
 
 // Handler returns a /metrics handler exposing this registry.
@@ -37,9 +36,9 @@ func RunServerWithShutdown(cfg *config.ServerConfig) func(context.Context) error
 	// Run metrics server in a goroutine
 	go func() {
 		addr := srv.Addr
-		fmt.Println("Metrics server listening on  " + addr)
+		cfg.Logger.Info("Metrics server listening on  " + addr)
 		if err := http.ListenAndServe(addr, srv.Handler); err != nil {
-			log.Fatalf("metrics server failed: %v", err)
+			cfg.Logger.Error("metrics server failed: %v", zap.Error(err))
 		}
 	}()
 
