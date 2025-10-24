@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/marcosartorato/golang-basic-app/compare/v1.1.0...v1.2.0) (2025-10-24)
+
+
+### Features
+
+* add zap logger ([12c54a4](https://github.com/marcosartorato/golang-basic-app/commit/12c54a4490423f3e5414257ecfd2e87da104331d))
+
 # [1.1.0](https://github.com/marcosartorato/golang-basic-app/compare/v1.0.1...v1.1.0) (2025-09-28)
 
 
