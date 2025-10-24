@@ -17,6 +17,10 @@ spec:
         - name: myapp
           image: myapp:latest
           imagePullPolicy: Always
+          command:
+            - ./myapp
+          args:
+            - -log-level=debug
           env:
           - name: HTTP_HOST
             value: "0.0.0.0"
