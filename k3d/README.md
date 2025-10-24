@@ -20,6 +20,12 @@ k3d cluster create --config ./k3d/cluster.yaml
 # Start Tilt to build, deploy, and watch the controller.
 # Tilt automatically rebuilds and redeploys on source code changes.
 tilt up
+
+# Delete resources created by "tilt up".
+tilt down
+
+# Delete the cluster.
+k3d cluster delete myapp
 ```
 
 The cluster is up! The cluster can be explored using `k9s` or `kubectl`.
@@ -30,15 +36,17 @@ To clean the local environment:
 - Run `k3d cluster stop ctrl` to stop the cluster.
 - Run `k3d cluster delete ctrl` to delete the cluster.
 
-## Metrics
+## Metrics and Logs
 
-The Grafana UI is exposed and can be accessed [here](http://localhost:3000/).
+The local cluster uses Prometheus, Loki, and Grafana as the metrics/logs stack. They are deployed via Helm and Tilt. 
 
-To get username and password, run:
+The Grafana user interface is exposed and can be accessed [here](http://localhost:3000/). Use Grafana to explore information related to logs and metrics. Grafana’s dashboard is usually sufficient for exploring logs and metrics. If you need direct access to Prometheus or Loki, you can port-forward their Kubernetes services to a local port.
+
+To get Grafana username and password, run:
 
 ```
 k get secret/grafana-ui -n monitoring -o jsonpath='{.data.admin-user}' | base64 -d
 k get secret/grafana-ui -n monitoring -o jsonpath='{.data.admin-password}' | base64 -d
 ```
 
-Remember to setup the data source [here](http://localhost:3000/connections/datasources) using `http://prometheus-server:80`.
+Loki and Prometheus are already configured as Grafana datasources by the related [value](monitoring/grafana/values.yaml) file. To setup additional data sources, goes on the [related section](http://localhost:3000/connections/datasources) in the Grafana user interface.
