@@ -1,5 +1,7 @@
 config:
 # publish data to loki
+  logLevel: warn
+  serverPort: 3101
   clients:
     - url: http://loki:3100/loki/api/v1/push
       tenant_id: 1

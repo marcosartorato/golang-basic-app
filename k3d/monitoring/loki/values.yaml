@@ -1,4 +1,11 @@
+global:
+  extraArgs:
+    - -log.level warn
+
 loki:
+  structuredConfig:
+    server:
+      log_level: warn
   auth_enabled: false
   commonConfig:
     replication_factor: 1
@@ -18,14 +25,6 @@ loki:
     volume_enabled: true
   ruler:
     enable_api: true
-
-promtail:
-  enabled: true
-  config:
-    logLevel: info
-    serverPort: 3101
-    clients:
-      - url: http://loki:3100/loki/api/v1/push
 
 minio:
   enabled: true
