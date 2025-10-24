@@ -24,7 +24,6 @@ helm_resource(
     'loki', 'grafana-community/loki', namespace='monitoring',
     flags=['--values=./k3d/monitoring/loki/values.yaml'],
 )
-k8s_resource(workload='loki', port_forwards=['3100:3100'])
 
 # --- Cluster & namespace ------------------------------------------------------
 # Tilt will apply resources into the "myapp" namespace declared in your YAML.
