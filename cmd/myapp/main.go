@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log"
 	"os"
 	"os/signal"
@@ -11,17 +12,38 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/marcosartorato/myapp/internal/config"
-	httpSrv "github.com/marcosartorato/myapp/internal/http"
-	"github.com/marcosartorato/myapp/internal/metrics"
+	cfg "github.com/marcosartorato/myapp/internal/config"
+	httpSrv "github.com/marcosartorato/myapp/internal/httpserver"
+	metricsSrv "github.com/marcosartorato/myapp/internal/metricsserver"
 )
+
+const (
+	envHTTPPort    = "HTTP_PORT"
+	envHTTPHost    = "HTTP_HOST"
+	envMetricsPort = "METRICS_PORT"
+	envMetricsHost = "METRICS_HOST"
+	envLogLevel    = "LOG_LEVEL"
+)
+
+// envOrDefault returns env value if set, otherwise fallback.
+func envOrDefault(key, def string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return def
+}
 
 func main() {
 	// Get configuration
-	cfg := config.Parse()
+	httpHost := flag.String("http-host", envOrDefault(envHTTPHost, "localhost"), "host for the HTTP server (also via "+envHTTPHost+")")
+	httpPort := flag.String("http-port", envOrDefault(envHTTPPort, "8080"), "port for the HTTP server (also via "+envHTTPPort+")")
+	metricsHost := flag.String("metrics-host", envOrDefault(envMetricsHost, "localhost"), "host for the metrics server (also via "+envMetricsHost+")")
+	metricsPort := flag.String("metrics-port", envOrDefault(envMetricsPort, "9090"), "port for the metrics server (also via "+envMetricsPort+")")
+	logLevel := flag.String("log-level", envOrDefault(envLogLevel, "info"), "logging level (debug, info, warn, error)")
+	flag.Parse()
 
 	// Create logger based on the log level.
-	level, err := zapcore.ParseLevel(*cfg.LogLevel)
+	level, err := zapcore.ParseLevel(*logLevel)
 	if err != nil {
 		log.Fatalf("invalid log level: %v", err)
 	}
@@ -40,13 +62,17 @@ func main() {
 		}
 	}()
 
-	// Save the logger in the server configs.
-	cfg.HTTP.Logger = logger
-	cfg.Metrics.Logger = logger
-
 	// Start servers
-	srvShutdown := httpSrv.RunServerWithShutdown(&cfg.HTTP)
-	metricShutdown := metrics.RunServerWithShutdown(&cfg.Metrics)
+	srvShutdown := httpSrv.RunServerWithShutdown(
+		logger,
+		cfg.WithHost(httpHost),
+		cfg.WithPort(httpPort),
+	)
+	metricShutdown := metricsSrv.RunServerWithShutdown(
+		logger,
+		cfg.WithHost(metricsHost),
+		cfg.WithPort(metricsPort),
+	)
 
 	// Channel to listen for termination signals
 	stop := make(chan os.Signal, 1)

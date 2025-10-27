@@ -1,10 +1,11 @@
-package metrics
+package metricsserver
 
 import (
 	"context"
+	"net"
 	"net/http"
 
-	"github.com/marcosartorato/myapp/internal/config"
+	cfg "github.com/marcosartorato/myapp/internal/config"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 )
@@ -17,28 +18,36 @@ func Handler() http.Handler {
 }
 
 // Start metric server
-func CreateServer(cfg *config.ServerConfig) *http.Server {
+func CreateServer(opt cfg.Options) *http.Server {
 	mux := http.NewServeMux()
 
 	mux.Handle("/metrics", Handler())
 
+	addr := net.JoinHostPort(*opt.Host, *opt.Port)
 	server := &http.Server{
-		Addr:    cfg.Addr(),
+		Addr:    addr,
 		Handler: mux,
 	}
 	return server
 }
 
 // Start run the HTTP server on dedicated goroutine and return the shutdown function.
-func RunServerWithShutdown(cfg *config.ServerConfig) func(context.Context) error {
-	srv := CreateServer(cfg)
+func RunServerWithShutdown(logger *zap.Logger, opts ...cfg.Option) func(context.Context) error {
+	var options cfg.Options
+	for _, opt := range opts {
+		if err := opt(&options); err != nil {
+			panic(err)
+		}
+	}
+
+	srv := CreateServer(options)
 
 	// Run metrics server in a goroutine
 	go func() {
 		addr := srv.Addr
-		cfg.Logger.Info("Metrics server listening on  " + addr)
+		logger.Info("Metrics server listening on  " + addr)
 		if err := http.ListenAndServe(addr, srv.Handler); err != nil {
-			cfg.Logger.Error("metrics server failed: %v", zap.Error(err))
+			logger.Error("metrics server failed: %v", zap.Error(err))
 		}
 	}()
 
