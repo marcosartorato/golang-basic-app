@@ -10,28 +10,48 @@ Basic GoLang application template:
 2. Web server exposing scraping point on 9090 port.
 3. Graceful termination on SIGTERM signal.
 
-## Local Pipeline (lint/test/build/run)
+## Local Environment
 
-```
-# Run linter
+Basic commands:
+
+- Run linter
+
+```sh
 golangci-lint run
-
-# Run test
-go test -v -coverprofile=out.cover ./...
-
-# Build and run binary
-go build -o bin/myapp cmd/myapp/main.go
-./bin/myapp
 ```
 
-## Make Targets
+- Run test
+
+```sh
+go test -v -coverprofile=out.cover ./...
+```
+
+- Build and run the application
+
+```sh
+go build -o bin/myapp cmd/myapp/main.go && ./bin/myapp
+```
+
+To ensure consistent results between your local environment and the repository’s CI pipeline, use the same tool versions.
+For example:
+
+```
+- name: Run golangci-lint
+  uses: golangci/golangci-lint-action@v8
+  with:
+    version: v2.4.0
+```
+
+The action [golangci-lint-action@v8](https://github.com/golangci/golangci-lint-action/tree/v8) defaults to [golangci-lint v2.1.0](https://github.com/golangci/golangci-lint/tree/v2.1.0), but the `version` field overrides it to use [v2.4.0](https://github.com/golangci/golangci-lint/tree/v2.4.0).
+
+### Make Targets
 
 If you prefer `Make`, add a `Makefile` with these:
 
 ```make
 .PHONY: lint test build run clean
 lint:  ; golangci-lint run
-test:  ; go test -v -cover ./...
+test:  ; go test -v -coverprofile=out.cover  ./...
 build: ; mkdir -p bin && go build -o bin/myapp ./cmd/myapp/main.go
 run:   ; go run ./cmd/myapp
 clean: ; rm -rf bin
@@ -39,25 +59,37 @@ clean: ; rm -rf bin
 
 ## Docker
 
-```
-# Run linter
+Sometimes it's easier to use Docker containers instead of reconfiguring your local environment for a specific repository:
+
+- Run linter
+
+```docker
 docker run --rm \
     -v "$(pwd)":/myapp \
     -w /myapp \
     golangci/golangci-lint:v2.4.0-alpine \
     golangci-lint run ./...
+```
 
-# Run test
+- Run test
+
+```docker
 docker run --rm \
     -v "$(pwd)":/myapp \
     -w /myapp \
     golang:1.25.0-alpine \
     go test -v -coverprofile=out.cover ./...
+```
 
-# Build local image
+- Build local image
+
+```docker
 docker build -t myapp:dev .
+```
 
-# Run container
+- Run container
+
+```docker
 docker run --rm -p 8080:8080 -p 9090:9090 myapp:dev
 ```
 
