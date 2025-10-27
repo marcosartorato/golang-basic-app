@@ -1,4 +1,4 @@
-package hello_test
+package httpserver_test
 
 import (
 	"io"
@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	hello "github.com/marcosartorato/myapp/internal/http"
+	hello "github.com/marcosartorato/myapp/internal/httpserver"
 
 	"github.com/stretchr/testify/assert"
 )

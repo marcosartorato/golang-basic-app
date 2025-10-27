@@ -1,12 +1,13 @@
-package hello
+package httpserver
 
 import (
 	"context"
+	"net"
 	"net/http"
 	"time"
 
-	"github.com/marcosartorato/myapp/internal/config"
-	"github.com/marcosartorato/myapp/internal/metrics"
+	cfg "github.com/marcosartorato/myapp/internal/config"
+	metrics "github.com/marcosartorato/myapp/internal/metricsserver"
 	"go.uber.org/zap"
 )
 
@@ -39,28 +40,35 @@ func getLogger(r *http.Request) *zap.Logger {
 }
 
 // Start run the HTTP on dedicated goroutine.
-func CreateServer(cfg *config.ServerConfig) *http.Server {
+func CreateServer(logger *zap.Logger, opt cfg.Options) *http.Server {
 	mux := http.NewServeMux()
 
-	mux.Handle("/hello", metrics.Instrument(withRequestLogger(cfg.Logger, http.HandlerFunc(HelloHandler))))
-	mux.Handle("/api/message", metrics.Instrument(withRequestLogger(cfg.Logger, http.HandlerFunc(MessageHandler))))
+	mux.Handle("/hello", metrics.Instrument(withRequestLogger(logger, http.HandlerFunc(HelloHandler))))
+	mux.Handle("/api/message", metrics.Instrument(withRequestLogger(logger, http.HandlerFunc(MessageHandler))))
 
+	addr := net.JoinHostPort(*opt.Host, *opt.Port)
 	server := &http.Server{
-		Addr:    cfg.Addr(),
+		Addr:    addr,
 		Handler: mux,
 	}
 	return server
 }
 
 // Start run the HTTP server on dedicated goroutine and return the shutdown function.
-func RunServerWithShutdown(cfg *config.ServerConfig) func(context.Context) error {
-	srv := CreateServer(cfg)
+func RunServerWithShutdown(logger *zap.Logger, opts ...cfg.Option) func(context.Context) error {
+	var options cfg.Options
+	for _, opt := range opts {
+		if err := opt(&options); err != nil {
+			panic(err)
+		}
+	}
+	srv := CreateServer(logger, options)
 
 	go func() {
 		addr := srv.Addr
-		cfg.Logger.Info("App server listening on " + addr)
+		logger.Info("App server listening on " + addr)
 		if err := http.ListenAndServe(addr, srv.Handler); err != nil {
-			cfg.Logger.Error("app server failed: %v", zap.Error(err))
+			logger.Error("app server failed: %v", zap.Error(err))
 		}
 	}()
 

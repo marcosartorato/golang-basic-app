@@ -1,4 +1,4 @@
-# Metrics
+# Metrics Server
 
 This service exposes Prometheus-compatible metrics on `:8080/metrics`.  
 The instrumentation follows the **RED pattern** (Rate, Errors, Duration), plus resource/runtime metrics useful for SRE and debugging.
