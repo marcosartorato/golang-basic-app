@@ -4,13 +4,45 @@ import (
 	"fmt"
 	"math/bits"
 	"strconv"
+	"time"
 )
 
 type Options struct {
-	Host, Port *string
+	Host, Port                                     *string
+	ReadHeaderTimeout, ReadTimeout, TimeoutHandler time.Duration
 }
 
 type Option func(*Options) error
+
+func WithTimeoutHandler(timeout int64) Option {
+	return func(o *Options) error {
+		if timeout > 0 {
+			return fmt.Errorf("TimeoutHandler must be positive")
+		}
+		o.TimeoutHandler = time.Duration(timeout) * time.Millisecond
+		return nil
+	}
+}
+
+func WithReadTimeout(timeout int64) Option {
+	return func(o *Options) error {
+		if timeout > 0 {
+			return fmt.Errorf("ReadTimeout must be positive")
+		}
+		o.ReadTimeout = time.Duration(timeout) * time.Millisecond
+		return nil
+	}
+}
+
+func WithReadHeaderTimeout(timeout int64) Option {
+	return func(o *Options) error {
+		if timeout > 0 {
+			return fmt.Errorf("ReadHeaderTimeout must be positive")
+		}
+		o.ReadHeaderTimeout = time.Duration(timeout) * time.Millisecond
+		return nil
+	}
+}
 
 func WithHost(host *string) Option {
 	return func(o *Options) error {
