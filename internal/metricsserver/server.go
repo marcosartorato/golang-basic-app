@@ -21,12 +21,21 @@ func Handler() http.Handler {
 func CreateServer(opt cfg.Options) *http.Server {
 	mux := http.NewServeMux()
 
-	mux.Handle("/metrics", Handler())
+	mux.Handle(
+		"/metrics",
+		http.TimeoutHandler(
+			Handler(),
+			opt.TimeoutHandler,
+			"Service Timeout",
+		),
+	)
 
 	addr := net.JoinHostPort(*opt.Host, *opt.Port)
 	server := &http.Server{
-		Addr:    addr,
-		Handler: mux,
+		Addr:              addr,
+		Handler:           mux,
+		ReadTimeout:       opt.ReadTimeout,
+		ReadHeaderTimeout: opt.ReadHeaderTimeout,
 	}
 	return server
 }
