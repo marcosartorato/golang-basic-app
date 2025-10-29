@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -18,28 +19,60 @@ import (
 )
 
 const (
-	envHTTPPort    = "HTTP_PORT"
-	envHTTPHost    = "HTTP_HOST"
-	envMetricsPort = "METRICS_PORT"
-	envMetricsHost = "METRICS_HOST"
-	envLogLevel    = "LOG_LEVEL"
+	envHTTPPort                 = "HTTP_PORT"
+	envHTTPHost                 = "HTTP_HOST"
+	envHTTPReadHeaderTimeout    = "HTTP_READ_HEADER_TIMEOUT"
+	envHTTPReadTimeout          = "HTTP_READ_TIMEOUT"
+	envHTTPTimeoutHandler       = "HTTP_TIMEOUT_HANDLER"
+	envHTTPIdleTimeout          = "HTTP_IDLE_TIMEOUT"
+	envMetricsPort              = "METRICS_PORT"
+	envMetricsHost              = "METRICS_HOST"
+	envMetricsReadHeaderTimeout = "METRICS_READ_HEADER_TIMEOUT"
+	envMetricsReadTimeout       = "METRICS_READ_TIMEOUT"
+	envMetricsTimeoutHandler    = "METRICS_TIMEOUT_HANDLER"
+	envMetricsIdleTimeout       = "METRICS_IDLE_TIMEOUT"
+	envLogLevel                 = "LOG_LEVEL"
+	defaultTimeoutMs            = 1000
 )
 
-// envOrDefault returns env value if set, otherwise fallback.
-func envOrDefault(key, def string) string {
+// envOrDefaultStr returns env value if set, otherwise fallback to default.
+func envOrDefaultStr(key, def string) string {
 	if v := os.Getenv(key); v != "" {
 		return v
 	}
 	return def
 }
 
+// envOrDefaultInt64 like envOrDefaultString but also check the env value is a valid int64.
+func envOrDefaultInt64(key string, def int64) int64 {
+	if vStr := os.Getenv(key); vStr != "" {
+		vInt, err := strconv.ParseInt(vStr, 10, 64)
+		if err == nil {
+			return vInt
+		}
+		// else fall through to return def
+	}
+	return def
+}
+
 func main() {
 	// Get configuration
-	httpHost := flag.String("http-host", envOrDefault(envHTTPHost, "localhost"), "host for the HTTP server (also via "+envHTTPHost+")")
-	httpPort := flag.String("http-port", envOrDefault(envHTTPPort, "8080"), "port for the HTTP server (also via "+envHTTPPort+")")
-	metricsHost := flag.String("metrics-host", envOrDefault(envMetricsHost, "localhost"), "host for the metrics server (also via "+envMetricsHost+")")
-	metricsPort := flag.String("metrics-port", envOrDefault(envMetricsPort, "9090"), "port for the metrics server (also via "+envMetricsPort+")")
-	logLevel := flag.String("log-level", envOrDefault(envLogLevel, "info"), "logging level (debug, info, warn, error)")
+	httpHost := flag.String("http-host", envOrDefaultStr(envHTTPHost, "localhost"), "host for the HTTP server (also via "+envHTTPHost+")")
+	httpPort := flag.String("http-port", envOrDefaultStr(envHTTPPort, "8080"), "port for the HTTP server (also via "+envHTTPPort+")")
+	httpReadHeaderTimeout := flag.Int64("http-read-header-timeout", envOrDefaultInt64(envHTTPReadHeaderTimeout, defaultTimeoutMs), "max amount of time to read the request headers (also via "+envHTTPReadHeaderTimeout+")")
+	httpReadTimeout := flag.Int64("http-read-timeout", envOrDefaultInt64(envHTTPReadTimeout, defaultTimeoutMs), "max amount of time to read the entire request (also via "+envHTTPReadTimeout+")")
+	httpTimeoutHandler := flag.Int64("http-timeout-handler", envOrDefaultInt64(envHTTPTimeoutHandler, defaultTimeoutMs), "max amount of time for a handler to complete (also via "+envHTTPTimeoutHandler+")")
+	httpIdleTimeout := flag.Int64("http-idle-timeout", envOrDefaultInt64(envHTTPIdleTimeout, defaultTimeoutMs), "max amount of time to wait for the next request when keep-alives are enabled (also via "+envHTTPIdleTimeout+")")
+
+	metricsHost := flag.String("metrics-host", envOrDefaultStr(envMetricsHost, "localhost"), "host for the metrics server (also via "+envMetricsHost+")")
+	metricsPort := flag.String("metrics-port", envOrDefaultStr(envMetricsPort, "9090"), "port for the metrics server (also via "+envMetricsPort+")")
+	metricsReadHeaderTimeout := flag.Int64("metrics-read-header-timeout", envOrDefaultInt64(envMetricsReadHeaderTimeout, defaultTimeoutMs), "max amount of time to read the request headers (also via "+envHTTPReadHeaderTimeout+")")
+	metricsReadTimeout := flag.Int64("metrics-read-timeout", envOrDefaultInt64(envMetricsReadTimeout, defaultTimeoutMs), "max amount of time to read the entire request (also via "+envHTTPReadTimeout+")")
+	metricsTimeoutHandler := flag.Int64("metrics-timeout-handler", envOrDefaultInt64(envMetricsTimeoutHandler, defaultTimeoutMs), "max amount of time for a handler to complete (also via "+envHTTPTimeoutHandler+")")
+	metricsIdleTimeout := flag.Int64("metrics-idle-timeout", envOrDefaultInt64(envMetricsIdleTimeout, defaultTimeoutMs), "max amount of time to wait for the next request when keep-alives are enabled (also via "+envMetricsIdleTimeout+")")
+
+	logLevel := flag.String("log-level", envOrDefaultStr(envLogLevel, "info"), "logging level (debug, info, warn, error)")
+
 	flag.Parse()
 
 	// Create logger based on the log level.
@@ -67,11 +100,19 @@ func main() {
 		logger,
 		cfg.WithHost(httpHost),
 		cfg.WithPort(httpPort),
+		cfg.WithReadHeaderTimeout(*httpReadHeaderTimeout),
+		cfg.WithReadTimeout(*httpReadTimeout),
+		cfg.WithTimeoutHandler(*httpTimeoutHandler),
+		cfg.WithIdleTimeout(*httpIdleTimeout),
 	)
 	metricShutdown := metricsSrv.RunServerWithShutdown(
 		logger,
 		cfg.WithHost(metricsHost),
 		cfg.WithPort(metricsPort),
+		cfg.WithReadHeaderTimeout(*metricsReadHeaderTimeout),
+		cfg.WithReadTimeout(*metricsReadTimeout),
+		cfg.WithTimeoutHandler(*metricsTimeoutHandler),
+		cfg.WithIdleTimeout(*metricsIdleTimeout),
 	)
 
 	// Channel to listen for termination signals

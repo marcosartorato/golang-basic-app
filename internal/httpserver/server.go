@@ -43,13 +43,30 @@ func getLogger(r *http.Request) *zap.Logger {
 func CreateServer(logger *zap.Logger, opt cfg.Options) *http.Server {
 	mux := http.NewServeMux()
 
-	mux.Handle("/hello", metrics.Instrument(withRequestLogger(logger, http.HandlerFunc(HelloHandler))))
-	mux.Handle("/api/message", metrics.Instrument(withRequestLogger(logger, http.HandlerFunc(MessageHandler))))
+	mux.Handle(
+		"/hello",
+		http.TimeoutHandler(
+			metrics.Instrument(withRequestLogger(logger, http.HandlerFunc(HelloHandler))),
+			opt.TimeoutHandler,
+			"Service Timeout",
+		),
+	)
+	mux.Handle(
+		"/api/message",
+		http.TimeoutHandler(
+			metrics.Instrument(withRequestLogger(logger, http.HandlerFunc(MessageHandler))),
+			opt.TimeoutHandler,
+			"Service Timeout",
+		),
+	)
 
 	addr := net.JoinHostPort(*opt.Host, *opt.Port)
 	server := &http.Server{
-		Addr:    addr,
-		Handler: mux,
+		Addr:              addr,
+		Handler:           mux,
+		ReadTimeout:       opt.ReadTimeout,
+		ReadHeaderTimeout: opt.ReadHeaderTimeout,
+		IdleTimeout:       opt.IdleTimeout,
 	}
 	return server
 }
