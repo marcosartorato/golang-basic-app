@@ -27,7 +27,7 @@ type TimeResponse struct {
 }
 
 func MessageHandler(w http.ResponseWriter, r *http.Request) {
-	log := getLogger(r).Named("hello")
+	log := getLogger(r).Named("/api/message")
 
 	var req MessageRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
