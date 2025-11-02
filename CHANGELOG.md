@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/marcosartorato/golang-basic-app/compare/v1.2.0...v1.3.0) (2025-11-02)
+
+
+### Features
+
+* add timeout conf for HTTP servers ([67468ea](https://github.com/marcosartorato/golang-basic-app/commit/67468eac14e866ad238113e96a2ca0e280390491))
+
 # [1.2.0](https://github.com/marcosartorato/golang-basic-app/compare/v1.1.0...v1.2.0) (2025-10-24)
 
 
