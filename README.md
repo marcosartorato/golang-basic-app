@@ -165,6 +165,16 @@ More about the provided metrics [here](./internal/metrics/README.md).
 
 More about how to access the metrics in the local environment [here](./k3d/README.md)
 
+## Tests
+
+By default, all tests are executed, but you can skip the tests related to the `handlers`.
+
+To skip them, set the environment variable `SKIP_HANDLER_TEST` to `true` when running the tests:
+
+```sh
+SKIP_HANDLER_TEST=true go test -v -coverprofile=out.cover ./...
+```
+
 ## License
 
 See [LICENSE](./LICENSE).
